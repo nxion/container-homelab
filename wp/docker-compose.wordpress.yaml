@@ -1,0 +1,27 @@
+---
+services:
+  wordpress:
+    container_name: wp_frontend
+    image: wordpress:latest
+    restart: unless-stopped
+    environment:
+      WORDPRESS_DB_HOST: ${WORDPRESS_MYSQL_DB_HOST}:3306
+      WORDPRESS_DB_USER: ${WORDPRESS_MYSQL_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_MYSQL_DB_USER_PASSWORD}
+      WORDPRESS_DB_NAME: ${WORDPRESS_MYSQL_DB_NAME}
+    networks:
+      #- db_net
+      - homelab
+    volumes:
+      - wordpress_data:/var/www/html
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.wp-http.rule=Host(`wp.${SITE}`)
+      - traefik.http.routers.wp-http.entrypoints=web
+
+volumes:
+  wordpress_data:
+
+networks:
+  homelab:
+    external: true

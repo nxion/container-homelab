@@ -1,0 +1,21 @@
+---
+services:
+  linkding:
+    container_name: linkding
+    image: 'sissbruecker/linkding:latest-plus'
+    restart: unless-stopped
+    volumes:
+      - linkding_data:/etc/linkding/data'
+    networks:
+      - homelab
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.links-http.rule=Host(`links.${SITE}`)
+      - traefik.http.routers.links-http.entrypoints=web
+
+volumes:
+  linkding_data:
+
+networks:
+  homelab:
+    external: true

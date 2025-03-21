@@ -1,0 +1,26 @@
+---
+services:
+  phpmyadmin:
+    container_name: phpmyadmin
+    image: lscr.io/linuxserver/phpmyadmin:latest
+    restart: unless-stopped
+    environment:
+      - PUID=${CONTAINER_PUID}
+      - PGID=${CONTAINER_PGID}
+      - TZ=${TIMEZONE}
+      - PMA_ARBITRARY=1 #optional
+    volumes:
+      - phpmyadmin_data:/config
+    networks:
+      - homelab
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.php-http.rule=Host(`php.${SITE}`)
+      - traefik.http.routers.php-http.entrypoints=web    
+
+volumes:
+  phpmyadmin_data:
+
+networks:
+  homelab:
+    external: true

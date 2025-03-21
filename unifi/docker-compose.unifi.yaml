@@ -1,0 +1,92 @@
+---
+services:
+  unifi-db:
+    container_name: unifi-db
+    # For compatability wit RPI's
+    #image: docker.io/mongo:3.6
+    # New Mongo DB WITHOUT support for RPI's
+    image: docker.io/mongo:4.4
+    restart: unless-stopped
+    privileged: false
+    
+    configs:
+      - source: init-mongo.js
+        target: /docker-entrypoint-initdb.d/init-mongo.js
+    environment:
+      - PGID=${CONTAINER_PGID}
+      - PUID=${CONTAINER_PUID}
+      - TZ=${TIMEZONE}
+      - UNIFI_MEM_LIMIT=${MEM_LIMIT}
+    ports:
+      - 27017:27017/tcp
+    volumes:
+      - unifi_db_data:/data/db
+    networks:
+     - homelab
+
+
+  unifi-network-application:
+    depends_on:
+      unifi-db:
+        condition: service_started
+        required: true
+    container_name: unifi-network-application
+    image: lscr.io/linuxserver/unifi-network-application:latest
+    restart: unless-stopped
+    privileged: false
+    environment:
+      - PUID=${CONTAINER_PUID}
+      - PGID=${CONTAINER_PGID}
+      - TZ=${TIMEZONE}
+      - MONGO_USER=${UNIFI_MONGO_DB_USER}
+      - MONGO_PASS=${UNIFI_MONGO_DB_PASSWORD}
+      - MONGO_HOST=${UNIFI_MONGO_DB_HOST}
+      - MONGO_PORT=${UNIFI_MONGO_DB_PORT}
+      - MONGO_DBNAME=${UNIFI_MONGO_DB_DBNAME}
+      - UNIFI_MEM_STARTUP=${MEM_STARTUP}
+    volumes:
+      - unifi_netapp_data:/config
+    networks:
+      - homelab
+    ports:
+      # Port for login interface. Disable when using Traefik
+      #- 8443:8443
+      # STUN
+      - 3478:3478/udp
+      # Device and Controllor communication
+      - 8080:8080
+      - 8081:8081
+      # Port used for device discovery
+      - 10001:10001/udp
+      - 1900:1900/udp
+      - 6789:6789
+      - 5514:5514/udp
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.unifi.entrypoints=websecure
+      - traefik.http.routers.unifi.rule=Host(`unifi.${SITE}`)
+      - traefik.http.routers.unifi.service=unifi
+      - traefik.http.routers.unifi.middlewares=unifiHeaders@file
+      - traefik.http.services.unifi.loadbalancer.server.port=8443
+      - traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto=https
+      - traefik.http.services.unifi.loadbalancer.server.scheme=https
+      - traefik.http.routers.unifi.tls=true
+      # Testing inform url
+      - "traefik.http.routers.unifi-inform.rule=Host(`unifi.${SITE}`) && Path(`/inform`) && Method(`POST`)"
+      - "traefik.http.routers.unifi-inform.entrypoints=web"
+      - traefik.http.routers.unifi-inform.service=unifi-inform
+      - "traefik.http.services.unifi-inform.loadbalancer.server.url=http://unifi.${SITE}:8080"
+
+volumes:
+  unifi_db_data:
+  unifi_netapp_data:
+
+networks:
+  homelab:
+    external: true
+
+configs:
+  init-mongo.js:
+    content: |
+      db.getSiblingDB("unifi-db").createUser({user: "unifi", pwd: "password", roles: [{role: "dbOwner", db: "unifi-db"}]}); 
+      db.getSiblingDB("unifi-db_stat").createUser({user: "unifi", pwd: "password", roles: [{role: "dbOwner", db: "unifi-db_stat"}]});

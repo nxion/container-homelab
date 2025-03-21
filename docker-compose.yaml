@@ -1,0 +1,12 @@
+---
+include:
+  - path: 'traefik/docker-compose.traefik.yaml'
+  - path: 'whoami/docker-compose.whoami.yaml'
+  - path: 'it-tools/docker-compose.tools.yaml'
+  - path: 'mysql/docker-compose.mysql.yaml'
+  - path: 'phpmyadmin/docker-compose.phpmyadmin.yaml'
+  - path: 'wp/docker-compose.wordpress.yaml'
+  - path: 'pihole/docker-compose.pihole.yaml'
+  - path: 'nginx/docker-compose.nginx.yaml'
+  - path: 'linkding/docker-compose.links.yaml'
+  - path: 'unifi/docker-compose.unifi.yaml'

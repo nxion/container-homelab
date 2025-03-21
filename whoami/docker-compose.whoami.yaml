@@ -1,0 +1,14 @@
+services:
+  whoami:
+    container_name: "simple-service"
+    image: "traefik/whoami"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami.rule=Host(`whoami.${SITE}`)"
+      - "traefik.http.routers.whoami.entrypoints=web"
+    networks:
+      - homelab
+
+networks:
+  homelab:
+    external: true

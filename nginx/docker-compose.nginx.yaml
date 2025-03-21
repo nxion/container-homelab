@@ -1,0 +1,16 @@
+---
+services:
+  nginx:
+    container_name: nginx
+    image: nginx:latest
+    restart: unless-stopped
+    networks:
+      - homelab
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.nginx-http.rule=Host(`nginx.${SITE}`)
+      - traefik.http.routers.nginx-http.entrypoints=web
+
+networks:
+  homelab:
+    external: true

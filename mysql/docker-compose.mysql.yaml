@@ -1,0 +1,23 @@
+---
+services:
+  db:
+    container_name: mysql_db
+    image: mysql:latest
+    restart: unless-stopped
+    environment:
+      MYSQL_USER: ${MAIN_MYSQL_USER}
+      MYSQL_PASSWORD: ${MAIN_MYSQL_USER_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MAIN_MYSQL_ROOT_PASSWORD}
+    ports:
+      - '3306:3306'
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - homelab
+
+volumes:
+  db_data:
+
+networks:
+  homelab:
+    external: true

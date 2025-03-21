@@ -1,0 +1,16 @@
+---
+services:
+  corentinth:
+    container_name: it-tools
+    image: 'ghcr.io/corentinth/it-tools:latest'
+    restart: unless-stopped
+    networks:
+      - homelab
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.tools-http.rule=Host(`tools.${SITE}`)
+      - traefik.http.routers.tools-http.entrypoints=web
+
+networks:
+  homelab:
+    external: true
